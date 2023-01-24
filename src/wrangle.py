@@ -23,7 +23,7 @@ def acquire_data() -> pd.DataFrame:
     if os.path.isfile(filename):
         # read the filtered data  
         df = pd.read_pickle(filename)
-        #return df
+        return df
     # if not available, go to the file downloaded from https://data.texas.gov/
     # the full link to the site available in the Readme file
     else:
@@ -42,8 +42,67 @@ def acquire_data() -> pd.DataFrame:
                 'staffing_acquistion_type'], axis=1, inplace=True)
             # save the file
             pd.to_pickle(df, filepath_or_buffer=filename)
-            #return df
+            return df
         except FileNotFoundError:
             # if file not found print:
-            print('The file doesn\'t exist. Please, download it from the link provided in the Readme file')
-    return df    
+            print('The file doesn\'t exist. Please, download it from the link provided in the Readme file')  
+
+def basic_clean(df:pd.DataFrame) -> pd.DataFrame:
+    '''
+    Remove unneeded columns
+    Create a copy of order date
+    Changes dates type
+    Sets order date as an index
+    Parameters:
+        df: pandas data frame
+    Returns:
+        cleaned data frame
+    '''
+    # list of columns to drop
+    drop_columns = ['fiscal_year',
+     'rfo_description',
+     'rfo_number',
+     'contract_number',
+     'customer_contact',
+     'customer_address',
+     'customer_state',
+     'customer_zip',
+     'vendor_name',
+     'vendor_contact',
+     'vendor_hub_type',
+     'vendor_address',
+     'vendor_state',
+     'vendor_city',
+     'vendor_zip',
+     'reseller_hub_type',
+     'reseller_address',
+     'reseller_state',
+     'reseller_zip',
+     'reseller_phone',
+     'report_received_month',
+     'brand_name',
+     'purchase_month',
+     'invoice_number',
+     'dir_contract_mgr',
+     'contract_type',
+     'contract_subtype',
+     'contract_start_date',
+     'contract_end_date',
+     'contract_termination_date',
+     'sales_fact_number']
+
+    df = df.drop(columns = drop_columns, axis=1)
+    # create a copy for the shipped date
+    df['order_date_copy'] = df.order_date
+
+    # convert order date and shpping date to datetime
+    df.order_date = pd.to_datetime(df.order_date)
+    df.shipped_date = pd.to_datetime(df.shipped_date)
+    df.order_date_copy = pd.to_datetime(df.order_date_copy)
+
+    # save the shipped date as index
+    df = df.set_index('order_date').sort_index()
+
+    # data doesn't have enough info about 2017, so we starts from 2018
+    df = df.loc['2018':]
+    return df
