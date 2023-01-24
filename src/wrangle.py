@@ -106,3 +106,14 @@ def basic_clean(df:pd.DataFrame) -> pd.DataFrame:
     # data doesn't have enough info about 2017, so we starts from 2018
     df = df.loc['2018':]
     return df
+
+def split_data(df, explore=True):
+    '''
+    splits the data frame based on date
+    '''
+    if explore:
+        train = df.loc[:'2021']
+        test = df.loc['2022']
+        return train, test
+    else:
+        return df
