@@ -47,7 +47,7 @@ def acquire_data() -> pd.DataFrame:
             # if file not found print:
             print('The file doesn\'t exist. Please, download it from the link provided in the Readme file')  
 
-def basic_clean(df:pd.DataFrame) -> pd.DataFrame:
+def basic_clean(df:pd.DataFrame, start2018=False) -> pd.DataFrame:
     '''
     Remove unneeded columns
     Create a copy of order date
@@ -66,7 +66,7 @@ def basic_clean(df:pd.DataFrame) -> pd.DataFrame:
      'customer_contact',
      'customer_address',
      'customer_state',
-     'customer_zip',
+     # 'customer_zip',
      'vendor_name',
      'vendor_contact',
      'vendor_hub_type',
@@ -103,9 +103,85 @@ def basic_clean(df:pd.DataFrame) -> pd.DataFrame:
     # save the shipped date as index
     df = df.set_index('order_date').sort_index()
 
+    if start2018:
     # data doesn't have enough info about 2017, so we starts from 2018
-    df = df.loc['2018':]
+        df = df.loc['2018':]
+    else:
+        # keep all but drop 2017
+        df = pd.concat([df.loc[:'2016'], df.loc['2018':]], axis=0)
     return df
+
+def add_date_features(df):
+    '''
+    Add features based on the date:
+    year, month, week number, week day in numerical and human readable values
+    
+    Parameters:
+        df: pandas data frame with date as an index
+    Return:
+        df: pandas data frame with features added
+    '''
+    # numerical features
+    df['year'] = df.index.year
+    df['month'] = df.index.month
+    df['week'] = df.index.week
+    df['day_of_week'] = df.index.day_of_week
+    df['day_of_year'] = df.index.day_of_year
+    # month and day human readable
+    df['month_name'] = df.index.month_name()
+    df['day_name'] = df.index.day_name()
+    
+    return df
+
+def change_customer_type(df):
+    '''
+    Replace low value count values with 'Other'
+    Returns data frame with replaced values in customer type
+    '''
+    # remove 30 rows with the sales out of Texas
+    df = df[df.customer_type != 'Out of State']
+    # make assistance org other
+    df.customer_type.replace({'Assistance Org':'Other'},inplace=True)
+    
+    return df
+
+def change_column_order(df):
+    '''
+    change the order of columns
+    '''
+    columns_order = ['customer_name', 
+                     'customer_type', 
+                     'customer_city',
+                     'reseller_name', 
+                     'reseller_city',
+                     'customer_zip',
+                     'order_quantity', 
+                     'unit_price',
+                     'po_number', 
+                     'shipped_date', 
+                     'order_date_copy',
+                     'year',
+                     'month_name', 
+                     'day_name',
+                     'month', 
+                     'week',
+                     'day_of_week', 
+                     'day_of_year',
+                     'purchase_amount']
+    return df[columns_order]
+
+def get_clean_data(start2018=False):
+    '''
+    combines all functions from above
+    '''
+    df = acquire_data()
+    df = basic_clean(df, start2018=start2018)
+    df = add_date_features(df)
+    df = change_customer_type(df)
+    df = change_column_order(df)
+
+    return df
+
 
 def split_data(df, explore=True):
     '''
