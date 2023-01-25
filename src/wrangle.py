@@ -123,6 +123,7 @@ def add_date_features(df):
     '''
     # numerical features
     df['year'] = df.index.year
+    df['quarter'] = df.index.quarter
     df['month'] = df.index.month
     df['week'] = df.index.week
     df['day_of_week'] = df.index.day_of_week
@@ -161,6 +162,7 @@ def change_column_order(df):
                      'shipped_date', 
                      'order_date_copy',
                      'year',
+                     'quarter',
                      'month_name', 
                      'day_name',
                      'month', 
