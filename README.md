@@ -1,6 +1,6 @@
 
 # Project Overview:
-This team was tasked to build a model that can predict the sales for Sisco in 2023.
+This team was tasked to build a model that can predict the sales for Cisco in 2023.
 
 
 
