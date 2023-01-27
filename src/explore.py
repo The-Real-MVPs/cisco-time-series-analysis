@@ -33,6 +33,7 @@ import src.wrangle as wr
 
 
 
+
 # declaring global variables
 df = wr.get_clean_data(start2018=True)
 train, test = wr.split_data(df, explore=True)
