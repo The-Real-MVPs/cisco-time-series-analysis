@@ -1,11 +1,13 @@
 import pandas as pd
 
+import wrangle as wr
+
 '''
 The file contains functions that return summury information for:
 - whole data frame with purchase_amount sum() for every company in every day
 - summury for every customer/reseller/customer_type with purchase_amount min/max/average, date min/max
 '''
-def get_summary_df(df):
+def get_summary_df(df, add_features = True):
     '''
     Groups by order date, customer name, customer type, customer city and reseller name.
     Calculates the purchase amount by the end. of the day
@@ -26,7 +28,14 @@ def get_summary_df(df):
         summary_df = df.groupby(by=\
                         ['order_date', 'customer_name', 'customer_type', 'customer_city', 'reseller_name', 'shipped_date'])\
                         .purchase_amount.sum().to_frame().reset_index()
-        summary_df = summary_df.set_index('order_date').sort_index()  
+        summary_df = summary_df.set_index('order_date').sort_index()
+    if add_features:
+        # add date features: year, month, day etc
+        summary_df = wr.add_date_features(summary_df)
+        # reorder columns
+        summary_df = summary_df[['customer_name', 'customer_type', 'customer_city', 'reseller_name',
+               'shipped_date',  'year', 'quarter', 'month', 'week',
+               'day_of_week', 'day_of_year', 'month_name', 'day_name','purchase_amount']]
     return summary_df
 
 def get_summary_orders_df(df):
@@ -52,6 +61,13 @@ def get_summary_orders_df(df):
                         .purchase_amount.sum().to_frame().reset_index()
         summary_df = summary_df.set_index('order_date').sort_index()  
     return summary_df
+
+def weekly_summary_df(df):
+    '''
+    returns results of weekly sales per customer per week
+    '''
+    return df.groupby([pd.Grouper(freq='W-MON'),'customer_name', 'customer_type'])\
+        .purchase_amount.sum().reset_index().set_index('order_date').sort_index()
 
 def get_customer_summary(df: pd.DataFrame) -> pd.DataFrame:
     '''
