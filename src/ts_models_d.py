@@ -20,8 +20,8 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # import helper modules
-import wrangle as wr
-import summaries as s
+import src.wrangle as wr
+import src.summaries as s
 
 # import graphic modules
 import matplotlib.pyplot as plt
