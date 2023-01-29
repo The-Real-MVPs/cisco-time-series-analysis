@@ -7,6 +7,15 @@ import os
 
 ######## ACQUIRE FUNCTIONS #############
 
+import pandas as pd
+import numpy as np
+import os
+
+########### GLOBAL VARIABLES ###########
+
+
+######## ACQUIRE FUNCTIONS #############
+
 def acquire_data() -> pd.DataFrame:
     '''
     Reads the data from the csv file. 
@@ -15,7 +24,6 @@ def acquire_data() -> pd.DataFrame:
     Removes columns where all values are NULL
     Saves the data into data.pickle file.
     Next interation reads the data from the saved file
-
     Returns: pandas DataFrame
     '''
     filename = 'data/data.pickle'
@@ -106,8 +114,8 @@ def basic_clean(df:pd.DataFrame, start2018=False) -> pd.DataFrame:
     if start2018:
     # data doesn't have enough info about 2017, so we starts from 2018
         df = df.loc['2018':]
-   # else:
-        #keep all but drop 2017
+    else:
+        # keep all but drop 2017
         df = pd.concat([df.loc[:'2016'], df.loc['2018':]], axis=0)
     return df
 
@@ -125,7 +133,7 @@ def add_date_features(df):
     df['year'] = df.index.year
     df['quarter'] = df.index.quarter
     df['month'] = df.index.month
-    df['week'] = df.index.week
+    df['week'] = df.index.isocalendar().week
     df['day_of_week'] = df.index.day_of_week
     df['day_of_year'] = df.index.day_of_year
     # month and day human readable
@@ -140,7 +148,7 @@ def change_customer_type(df):
     Returns data frame with replaced values in customer type
     '''
     # remove 30 rows with the sales out of Texas
-    df = df[df.customer_type != 'Out of State']
+    df = df[df.customer_type != 'Out of State'].copy()
     # make assistance org other
     df.customer_type.replace({'Assistance Org':'Other'},inplace=True)
     
@@ -161,10 +169,10 @@ def change_column_order(df):
                      'po_number', 
                      'shipped_date', 
                      'order_date_copy',
-                     'year',
-                     'quarter',
                      'month_name', 
                      'day_name',
+                     'year',
+                     'quarter',
                      'month', 
                      'week',
                      'day_of_week', 
