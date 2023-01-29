@@ -1,6 +1,6 @@
 
 # Project Overview:
-This team was tasked to build a model that can predict the sales for Cisco in 2023.
+This team was tasked to build a model that can predict the sales for Cisco.
 
 
 
@@ -23,7 +23,7 @@ This team was tasked to build a model that can predict the sales for Cisco in 20
 
     
 # Initial Thoughts
-During Covid Sisco sales would increase and that would create an upward trend for years following Covid
+During Covid Sisco sales would increase and that would create an upward trend for years following Covid.
 
 # The Plan
 * Acquire data from 
