@@ -100,6 +100,9 @@ def basic_clean(df:pd.DataFrame, start2018=False) -> pd.DataFrame:
     df.shipped_date = pd.to_datetime(df.shipped_date)
     df.order_date_copy = pd.to_datetime(df.order_date_copy)
 
+    # drop 2017 and move data frame year up (2014-2016 to 2015-2017)
+    df = drop2017_and_move2016_up(df)    
+
     # save the shipped date as index
     df = df.set_index('order_date').sort_index()
 
@@ -107,9 +110,23 @@ def basic_clean(df:pd.DataFrame, start2018=False) -> pd.DataFrame:
     # data doesn't have enough info about 2017, so we starts from 2018
         df = df.loc['2018':]
     else:
-        # keep all but drop 2017
-        df = pd.concat([df.loc[:'2016'], df.loc['2018':]], axis=0)
+        # keep all but drop 2017 and convert 2014-2016 to 2015-2017
+        df =  df
     return df
+
+def drop2017_and_move2016_up(df):
+    '''
+    This function drops missing year 2017 to combine data with 2018+ dataframe. This is done by creating a temporary
+    dataframe and adding a year to years 2014-2016 to creates a seam between 2016 and 2018. 
+    return dataframe with new years for temp_df
+    '''
+    temp_df = df[(df.order_date.dt.year==2014)|(df.order_date.dt.year==2015)|(df.order_date.dt.year==2016)]
+    temp_df['order_date'] = temp_df['order_date'] +  pd.offsets.DateOffset(years=1)
+    
+    temp2 = df[(df.order_date.dt.year==2018)|(df.order_date.dt.year==2019)|(df.order_date.dt.year==2020)|(df.order_date.dt.year==2021)|(df.order_date.dt.year==2022)]
+    final_df = pd.concat([temp_df, temp2], axis =0)
+    
+    return final_df
 
 def add_date_features(df):
     '''
