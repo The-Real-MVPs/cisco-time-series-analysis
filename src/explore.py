@@ -35,12 +35,14 @@ import src.summaries as s
 # declaring global variables
 df = s.get_summary_df(wr.get_clean_data(start2018=True))
 train, test = wr.split_data(df, explore=True)
-validate = test.loc[:'2022-06'].copy() 
-test = test.loc['2022-07':]
+#validate = test.loc[:'2022-06'].copy() 
+#test = test.loc['2022-07':]
+
 # create a df with purchase amount by the end of the day only
 train_ts = train.purchase_amount.resample('D').sum().to_frame()
 # add date features to train_ts
 train_ts = wr.add_date_features(train_ts)
+
 # separate by day for stat test
 mon = train_ts[train_ts.day_name == 'Monday']
 tue = train_ts[train_ts.day_name == 'Tuesday']
@@ -49,6 +51,7 @@ thu = train_ts[train_ts.day_name == 'Thursday']
 fri = train_ts[train_ts.day_name == 'Friday']
 sat = train_ts[train_ts.day_name == 'Saturday']
 sun = train_ts[train_ts.day_name == 'Sunday']
+
 # create a df with total purchase amount of the month
 train_m = train.purchase_amount.resample('M').sum().to_frame()
 # add month name
@@ -94,7 +97,7 @@ def viz_customer_types():
     the function creates a pie chart for customer types 
     '''
     piechart_labels = ['Local Governments','School Districts', 'Higher Education Institutions', 'State Agencies', 'Others']
-    values = train.customer_type.value_counts().tolist()
+    values = train.customer_type.value_counts(normalize=True).tolist()
     plt.figure(figsize=(8, 8))
     plt.pie(values, labels=piechart_labels,
             colors=sns.color_palette('Set2'), autopct=autopct_format(values),
