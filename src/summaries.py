@@ -1,6 +1,6 @@
 import pandas as pd
 
-import wrangle as wr
+import src.wrangle as wr
 
 '''
 The file contains functions that return summury information for:

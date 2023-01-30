@@ -120,7 +120,7 @@ def drop2017_and_move2016_up(df):
     dataframe and adding a year to years 2014-2016 to creates a seam between 2016 and 2018. 
     return dataframe with new years for temp_df
     '''
-    temp_df = df[(df.order_date.dt.year==2014)|(df.order_date.dt.year==2015)|(df.order_date.dt.year==2016)]
+    temp_df = df[(df.order_date.dt.year==2014)|(df.order_date.dt.year==2015)|(df.order_date.dt.year==2016)].copy()
     temp_df['order_date'] = temp_df['order_date'] +  pd.offsets.DateOffset(years=1)
     
     temp2 = df[(df.order_date.dt.year==2018)|(df.order_date.dt.year==2019)|(df.order_date.dt.year==2020)|(df.order_date.dt.year==2021)|(df.order_date.dt.year==2022)]
