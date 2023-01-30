@@ -119,7 +119,7 @@ def q1_viz_per_order():
     plt.ylabel('Purchase amount')
     x_left, x_right = ax.get_xlim()
     ax.hlines(train.purchase_amount.mean(), x_left, x_right, ls='--', color='purple')
-    plt.title('Average purchase amount per day')
+    plt.title('Average of Total Purchase Amount by Day')
     plt.show()
 
 def q1_viz():
@@ -132,11 +132,11 @@ def q1_viz():
 
     # visualize 
     ax = sns.barplot(data = train_ts, x='day_name', y='purchase_amount', order=days)
-    plt.xlabel('Day of the order')
+    plt.xlabel('')
     plt.ylabel('Purchase amount')
     x_left, x_right = ax.get_xlim()
     ax.hlines(train_ts.purchase_amount.mean(), x_left, x_right, ls='--', color='purple')
-    plt.title('Average sales for day of the week')
+    plt.title('Average of Total Purchase Amount by Day')
     plt.show()
 
 def q1_ttest():
@@ -171,20 +171,20 @@ def q1_anova():
     print('====================')
     if p < alpha:
         print('Reject null hypothesis')
-        print('There is a significant difference in means of sales during work days Monday through Wednesday')
+        print('There is a significant difference in means of purchase amount during work days Monday through Wednesday')
     else:
         print('Fail to reject null hypothesis')
-        print('There is no significant difference in means of sales during work days Monday through Wednesday')
+        print('There is no significant difference in means of purchase amount during work days Monday through Wednesday')
     
 def q2_viz():
     
     # visualize 
     ax = sns.barplot(data=train_m, x='month_name', y='purchase_amount')
-    plt.xlabel('Month of the order')
+    plt.xlabel('')
     plt.ylabel('Purchase amount')
     x_left, x_right = ax.get_xlim()
     ax.hlines(train_m.purchase_amount.mean(), x_left, x_right, ls='--', color='purple')
-    plt.title('Average sales for each month')
+    plt.title('Average of Total Purchase Amount by Month')
     plt.show()
 
 def q2_ttest():
@@ -206,7 +206,8 @@ def q3_viz():
     #sns.set_color_codes("muted")
     ax = sns.barplot(x="quarter", y="purchase_amount", data=train_q)
     x_left, x_right = ax.get_xlim()
-    ax.hlines(train_q.purchase_amount.mean(), x_left, x_right, ls='--', color='purple')
+    ax.hlines(train_q.purchase_amount.mean(), x_left, x_right, ls='--', color='purple')    
+    plt.title('Average of Total Purchase Amount by Quarter')
 
 def q3_ttest():
     '''
