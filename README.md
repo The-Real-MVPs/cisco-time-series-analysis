@@ -18,25 +18,32 @@ In this project we will focus on Time Series Analysis and we'll try to create fo
 **The goal** 
 The goal of the project is to make the exploration of Cisco's sales with public agencies, define what features can be useful to create a prediction model. Build a model that can forecast future sales for the company. 
 **Key takeaways**
-    * __Acquire__ The data file contains information about DIR Cooperative Contract Sales. To get the information about Cisco we filtered the data by vendor name.
-    * __Prepare__ 
-        - Removed columns with nulls only. 
-        - Added features based on the date information.
-        - Created an additional data frame that summarized information about sales for every customer by the end of the day.
-    * __Explore__
-        - All sales per day of the week significantly differ from the average daily sales. 
-        - Week days have higher sales than the average and weekend days almost don't have sales. 
-        - Monday, Tuesaday and Wednesday seem to have same average amount of sales. 
-        - Friday has the higher average sales amount among all days of the week.
-        - The highest sales are happening in July, followed by April, October and June.
-        - The lowest sales happen on February.
-        - March has almost the same results as average sales, but there was peak in sales on March, 2020 when pandemic just started, it might happened that March is typically low on sales.
-        - April results might be affected by beginning of pandemic, too.
-        - Highest sales are in the 3rd quarter.
-        - Lowest sales are in the 1st quarter.
-        - Average qurterly sales per each quarter are not significantly different from the overall average quarterly sales.
-        - In the beginning of the pandemic there was an an abnormal spike in sales.
-        - There in a big outlier in order_quantity. Right before the pandemic one agency places the order for 4M Cisco's products.
+
+* __Acquire__ 
+The data file contains information about DIR Cooperative Contract Sales. To get the information about Cisco we filtered the data by vendor name.
+
+* __Prepare__ 
+    - Removed columns with nulls only. 
+    - Added features based on the date information.
+    - Created an additional data frame that summarized information about sales for every customer by the end of the day.
+
+* __Explore__
+    - All sales per day of the week significantly differ from the average daily sales. 
+    - Week days have higher sales than the average and weekend days almost don't have sales. 
+    - Monday, Tuesaday and Wednesday seem to have same average amount of sales. 
+    - Friday has the higher average sales amount among all days of the week.
+    - The highest sales are happening in July, followed by April, October and June.
+    - The lowest sales happen on February.
+    - March has almost the same results as average sales, but there was peak in sales on March, 2020 when pandemic just started, it might happened that March is typically low on sales.
+    - April results might be affected by beginning of pandemic, too.
+    - Highest sales are in the 3rd quarter.
+    - Lowest sales are in the 1st quarter.
+    - Average qurterly sales per each quarter are not significantly different from the overall average quarterly sales.
+    - In the beginning of the pandemic there was an an abnormal spike in sales.
+    - There in a big outlier in order_quantity. Right before the pandemic one agency places the order for 4M Cisco's products.
+
+* __Modeling__
+    - Our best model beats a baseline on all train, validation and test sets. Anyway, there is much more work to do. We'd like to improve results by making weekly/monthly resamples hoping find some seasonality. We'd like to remove the some pandemic sales anomalies as well. If this won't improve model performance, our next step is going to be splitting data on 5 different sets based on the customer type and make predictions for every set.
 
 # Reproduction of this Data:
          
@@ -128,43 +135,27 @@ We acquired the data from the [Texas Open Data Portal](https://data.texas.gov/da
 # Modeling
 
 ### Features that will be selected for Modeling:
-We kept only order date and purchase amount for our modeling.
-    - 
+We kept only order date and purchase amount for our ARIMA models. To create regression model we also kept features that are based on the date: day of week, week number, month, year.
 
 **The models we created**
-
-We used following classifiers (classification algorithms): 
-- Decision Tree, 
-- Random Forest, 
-- Logistic Regression,
-- Gaussian NB,
-- Multinational NB, 
-- Gradient Boosting, and
-- XGBoost. 
+We created ARIMA statistical models and XGBoost Regressor. XGBoost Regressor outperformed all statistical models.
 
 
 ## Modeling Summary:
-- The best algorithm  is 
-- It predicts with accuracy:
-    - % on the train set
-    - % on the validate set
-    - % on the test set
-- It makes % better predictions on the test set than the baseline model.
+ Our best model beats a baseline on all train, validation and test sets. Anyway, there is much more work to do. We'd like to improve results by making weekly/monthly resamples hoping find some seasonality. We'd like to remove the some pandemic sales anomalies as well. If this won't improve model performance, our next step is going to be splitting data on 5 different sets based on the customer type and make predictions for every set.
 
 
 # Conclusions: 
-*The goals of the project were:*
-- 
-- 
-- 
+The goals of this project were:
+- Explore the historical data of the DIR contracts with Cisco. 
+- Create a model for the sales forecast of Cisco with public agencies.
 
 *Result:*
-
-- 
-- 
-- 
-
+We made a data exploration and created the regression model that can forecast the sales based on the date features only.
 
 ## **Recommendations and next steps:**
-- 
-- 
+- create weekly/monthly resamples hoping find some seasonality and trends
+- remove the some pandemic sales anomalies as well
+
+or, as final step
+- split data on 5 different sets based on the customer type and mae predictions for every set.
