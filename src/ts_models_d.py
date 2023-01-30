@@ -4,14 +4,14 @@ import numpy as np
 # models
 import statsmodels.api as sm
 # pmdarima and prophet need installation!
-import pmdarima as pm # pip install pmdarima
+#import pmdarima as pm # pip install pmdarima
 import prophet # python -m pip install prophet
 from prophet import Prophet
 from statsmodels.tsa.stattools import adfuller, kpss, acf
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.api import SimpleExpSmoothing
 from statsmodels.tsa.arima.model import ARIMA
-from pmdarima.arima.utils import ndiffs
+#from pmdarima.arima.utils import ndiffs
 
 from sklearn.metrics import mean_squared_error
 
@@ -83,9 +83,17 @@ baseline = X_train_ts.mean()
 predictions_train['baseline'] = baseline
 predictions_validate['baseline'] = baseline
 
+def show_ts():
+    '''
+    plots daily sales for the X_train
+    '''
+    ax = X_train_ts.plot()
+    plt.title('Daily sales')
+    ax.set(yticks=[0, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 6_000_000, 7_000_000])
+    ax.set(yticklabels=['0', '1M', '2M', '3M', '4M', '5M', '6M', '7M'])
+    plt.show()
 
-
-def evaluate(target_name: str, model_name: str):
+def evaluate(target_name: str = target, model_name: str = 'baseline'):
     '''
     Calculate RMSE score for train and validate predictions,
     store RMSE into scores data frame,
@@ -108,6 +116,7 @@ def evaluate(target_name: str, model_name: str):
     plt.plot(X_validate[target_name], label='Validate', linewidth=1)
     plt.plot(predictions_train[model_name], label=model_name + '_train')
     plt.plot(predictions_validate[model_name], label=model_name + '_validate')
+    plt.legend()
     plt.title(target_name)
     
     print(target_name, '-- RMSE train: {:.0f}'.format(RMSE_train))
