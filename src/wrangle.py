@@ -139,12 +139,12 @@ def add_date_features(df):
         df: pandas data frame with features added
     '''
     # numerical features
-    df['year'] = df.index.year
-    df['quarter'] = df.index.quarter
-    df['month'] = df.index.month
-    df['week'] = df.index.isocalendar().week
-    df['day_of_week'] = df.index.day_of_week
-    df['day_of_year'] = df.index.day_of_year
+    df['year'] = df.index.year.astype(int)
+    df['quarter'] = df.index.quarter.astype(int)
+    df['month'] = df.index.month.astype(int)
+    df['week'] = df.index.isocalendar().week.astype(int)
+    df['day_of_week'] = df.index.day_of_week.astype(int)
+    df['day_of_year'] = df.index.day_of_year.astype(int)
     # month and day human readable
     df['month_name'] = df.index.month_name()
     df['day_name'] = df.index.day_name()
