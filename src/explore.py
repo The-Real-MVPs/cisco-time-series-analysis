@@ -89,7 +89,7 @@ def autopct_format(values):
     def my_format(pct):
         total = sum(values)
         val = int(round(pct*total/100.0))
-        return '{:.1f}%)'.format(pct, v=val)
+        return '{:.1f}%'.format(pct, v=val)
     return my_format
 
 def viz_customer_types():
@@ -99,9 +99,12 @@ def viz_customer_types():
     piechart_labels = ['Local Governments','School Districts', 'Higher Education Institutions', 'State Agencies', 'Others']
     values = train.customer_type.value_counts(normalize=True).tolist()
     plt.figure(figsize=(8, 8))
-    plt.pie(values, labels=piechart_labels,
+    
+    patches, texts, pcts = plt.pie(values, labels=piechart_labels,
             colors=sns.color_palette('Set2'), autopct=autopct_format(values),
-            shadow=False)
+            shadow=False, textprops={'fontsize': 13},wedgeprops = { 'linewidth' : .75, 'edgecolor' : 'mintcream' }) 
+    
+    plt.setp(pcts, color='darkslategray', fontweight='bold')
     plt.title('Customer types')
     plt.show()
 
