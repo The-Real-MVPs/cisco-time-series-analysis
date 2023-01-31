@@ -309,7 +309,7 @@ def run_xgboost():
 
 
 
-def run_test_model():
+def run_test_model(save_results=False):
     '''
     Calls get_prophet_data to get train and validate sets
     Creates prophet model
@@ -336,6 +336,8 @@ def run_test_model():
     X_test_xgb['y'] = y_test
     X_test_xgb['baseline'] = baseline
     X_test_xgb['forecast'] = forecast
+    if save_results:
+        X_test_xgb.to_pickle('predictions.pickle')
     RMSE_prohet = np.sqrt(mean_squared_error(X_test_xgb.y, X_test_xgb.forecast))
     RMSE_baseline = np.sqrt(mean_squared_error(X_test_xgb.y, X_test_xgb.baseline))
     # set model name as an index in scores data frame
@@ -359,5 +361,8 @@ def run_test_model():
     ax.set(ylabel='purchase_amount')
     plt.show()
 
-
-
+def save_validate_predictions():
+    '''
+    saves the predictions of validate set into file
+    '''
+    predictions_validate.to_pickle('validate.pickle')
