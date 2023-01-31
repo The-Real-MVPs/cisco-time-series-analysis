@@ -11,7 +11,7 @@ import scipy.stats as stats
 # setting style details for vizualizations
 color_pal = sns.color_palette()
 
-plt.style.use('bmh')
+plt.style.use("seaborn-whitegrid")
 plt.rc(
     "figure",
     autolayout=True,
@@ -71,15 +71,17 @@ train_pdf,_ = wr.split_data(wr.get_clean_data(start2018=True))
 pandemic_df = train_pdf.loc[train_pdf.index >= '11-01-2019']
 
 
-
-def get_df(df):
-
-    df['purchase_amount'] = df['purchase_amount'].astype('int64')
-    df['customer_zip'] = df['customer_zip'].astype('int8')
-    df['order_quantity'] = df['order_quantity'].astype('int64')
-    df['unit_price'] = df['unit_price'].astype('float64')
-    
-    return df
+def q1_show_ts():
+    '''
+    plots daily sales for the X_train
+    '''
+    #plt.figure(figsize=(12,6))
+    fig, ax = plt.subplots(figsize=(12,6))
+    ax = train_ts.plot()
+    plt.title('Daily purchase amount', size=18, weight='bold')
+    ax.set(yticks=[0, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 6_000_000, 7_000_000])
+    ax.set(yticklabels=['0', '1M', '2M', '3M', '4M', '5M', '6M', '7M'])
+    plt.show()
 
 def autopct_format(values):
     '''
@@ -98,6 +100,7 @@ def viz_customer_types():
     '''
     piechart_labels = ['Local Governments','School Districts', 'Higher Education Institutions', 'State Agencies', 'Others']
     values = train.customer_type.value_counts(normalize=True).tolist()
+
     plt.figure(figsize=(8, 8))
     
     patches, texts, pcts = plt.pie(values, labels=piechart_labels,
@@ -182,7 +185,7 @@ def q1_anova():
 def q2_viz():
     
     # visualize 
-    ax = sns.barplot(data=train_m, x='month_name', y='purchase_amount')
+    ax = sns.barplot(data=train_m, x='month_name', y='purchase_amount', palette=color_pal)
     plt.xlabel('')
     plt.ylabel('Purchase amount')
     x_left, x_right = ax.get_xlim()
@@ -207,7 +210,7 @@ def q2_ttest():
 def q3_viz():
     
     #sns.set_color_codes("muted")
-    ax = sns.barplot(x="quarter", y="purchase_amount", data=train_q)
+    ax = sns.barplot(x="quarter", y="purchase_amount", data=train_q, palette=color_pal)
     x_left, x_right = ax.get_xlim()
     ax.hlines(train_q.purchase_amount.mean(), x_left, x_right, ls='--', color='purple')    
     plt.title('Average of Total Purchase Amount by Quarter')
@@ -233,14 +236,14 @@ def q4_viz():
     y_month = ts.resample('M').sum()
     plt.figure(figsize = (20, 6))
     (y_month.diff() / y_month.shift()).plot(alpha=.5, lw=3, c='#1a34ff', 
-                                          marker='D', mfc='#f2cb30',mec='black', title='Monthly % Change in Total Sales');
+                                          marker='D', mfc='#f2cb30',mec='black', title='Monthly % Change in Total Purchase Amount');
     
     
 def q5_vizA():
     '''
     shows viz with huge order quantity spike.
     '''
-    fix, ax = plt.subplots(figsize = (15,5))
+    #fix, ax = plt.subplots(figsize = (15,5))
     train_pdf['order_quantity'].plot(ax=ax, xlabel='Order Quantity')
     plt.title('Order quantity outlier')
     plt.show()
@@ -267,7 +270,7 @@ def q5_thhsc():
                               
 def q5_vizB():
          
-    fix, ax = plt.subplots(figsize = (15,5))
+    #fix, ax = plt.subplots(figsize = (15,5))
     pandemic_df['order_quantity'].plot(ax=ax, xlabel='Order Quantity')
     plt.show()                         
                               
