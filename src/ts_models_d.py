@@ -3,10 +3,11 @@ import numpy as np
 
 # models
 import statsmodels.api as sm
+import xgboost as xgb
 # pmdarima and prophet need installation!
 #import pmdarima as pm # pip install pmdarima
 import prophet # python -m pip install prophet
-from prophet import Prophet
+#from prophet import Prophet
 from statsmodels.tsa.stattools import adfuller, kpss, acf
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.api import SimpleExpSmoothing
@@ -66,11 +67,28 @@ X_test_ts = test.purchase_amount.copy().resample('D').sum()
 X_train = X_train_ts.to_frame()
 X_validate = X_validate_ts.to_frame()
 X_test = X_test_ts.to_frame()
-# data frames to use with Prophet
+
+# prepare data to use with Prophet
 pr_train = X_train.reset_index()
 pr_train.columns = ['ds', 'y']
 pr_validate = X_validate.reset_index()
 pr_validate.columns = ['ds', 'y']
+
+# prepare data to use with XGBOOST
+X_train_xgb = wr.add_date_features(X_train.copy())
+X_validate_xgb = wr.add_date_features(X_validate.copy())
+X_test_xgb = wr.add_date_features(X_test.copy())
+
+features = ['month', 'week', 'day_of_week', 'year','day_of_year']
+
+y_train = X_train_xgb.purchase_amount
+y_validate = X_validate_xgb.purchase_amount
+y_test = X_test_xgb.purchase_amount
+
+X_train_xgb = X_train_xgb[features]
+X_validate_xgb = X_validate_xgb[features]
+X_test_xgb = X_test_xgb[features]
+
 # data frames to keep predictions
 predictions_train = X_train[target].to_frame()
 predictions_validate = X_validate[target].to_frame()
@@ -87,8 +105,9 @@ def show_ts():
     '''
     plots daily sales for the X_train
     '''
-    ax = X_train_ts.plot()
-    plt.title('Daily sales')
+    plt.figure(figsize = (11,4))
+    ax  = X_train_ts.plot(alpha=0.7)
+    plt.title('Daily purchase amount')
     ax.set(yticks=[0, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 6_000_000, 7_000_000])
     ax.set(yticklabels=['0', '1M', '2M', '3M', '4M', '5M', '6M', '7M'])
     plt.show()
@@ -154,7 +173,7 @@ def plot_model(target_name: str, model_name: str):
     Returns:
         no returns
     '''
-    plt.figure(figsize = (12,4))
+    plt.figure(figsize = (10,6))
     plt.plot(X_train[target_name], label='Train', linewidth=1)
     plt.plot(X_validate[target_name], label='Validate', linewidth=1)
     plt.plot(predictions_train[model_name], label=model_name + '_train')
@@ -268,74 +287,29 @@ def create_arima_models():
     model_arima(0, 0, 5)
     display(scores)
 
-#### PROPHET
 
-def model_prophet(linear=False, linear_ranges=[0.2, 0.3, 0.5, 0.6, 0.7, 0.8]):
+
+def run_xgboost():
     '''
+    Creates the XGBoost Regression model
+    Saves predictions to prediction data frames
+    Evaluates the model performance
+    '''
+    xgb_model = xgb.XGBRegressor(n_estimators = 500, 
+                             early_stopping_rounds = 25,
+                             learning_rate=0.01, verbosity=0)
+    xgb_model.fit(X_train_xgb, y_train, eval_set = [(X_train_xgb, y_train), (X_validate_xgb, y_validate)], verbose=False)
+    predictions_train['XGBoost'] = xgb_model.predict(X_train_xgb)
+    predictions_validate['XGBoost'] = xgb_model.predict(X_validate_xgb)
     
-    '''
-    period = len(pr_validate)
-    
-    if linear:
-        for r in linear_ranges:
-            # create the model
-            # linear ranges to put into changepoint_range, identify proportion of historical data
-            # interval_width for the confidence interval, didn't change any values though
-            model = Prophet(growth='linear', changepoint_range=r, interval_width=0.95)
-            # fit on train
-            model.fit(pr_train)
-            # make forecast
-            # periods = len of validation of test sets. 181 for daily forecasts, 27 for weekly
-            future = model.make_future_dataframe(periods=period, freq='D')
-            forecast = model.predict(future)
-            # save forecast to prediction data frame and evaluate them
-            model_name = 'Linear Prophet ' + str(r)
-            predictions_train[model_name] = forecast.iloc[0:len(pr_train)].yhat.tolist()
-            predictions_validate[model_name] = forecast.iloc[len(pr_train):].yhat.tolist()
-            evaluate_rmse(target, model_name)
-    else:
-        # if not linear, use 'flat' growth, changepoint_range doesn't matter in this case, use default 0.8
-        model = Prophet(growth='flat', interval_width=0.95)
-        # fit on train
-        model.fit(pr_train)
-        # make forecast
-        # periods = len of validation of test sets. 181 for daily forecasts, 27 for weekly
-        future = model.make_future_dataframe(periods=period, freq='D')
-        forecast = model.predict(future)
-        # save forecast to prediction data frame and evaluate them
-        model_name = 'Prophet'
-        predictions_train[model_name] = forecast.iloc[0:len(pr_train)].yhat.tolist()
-        predictions_validate[model_name] = forecast.iloc[len(pr_train):].yhat.tolist()
-        evaluate_rmse(target, model_name)
+    evaluate_rmse(target, 'XGBoost')
+    display(scores)
 
-def create_prophet():
-    model_prophet()
-    model_prophet(linear=True)
+###### run XGBoost on test set
 
-###### run Prophet on test set
 
-def get_prophet_data(df:pd.DataFrame):
-    '''
-    Creates train and test data sets for the final model implementation 
-    Parameters:
-        df: pd.DataFrame, clean original or summary data frame before the split
-    '''
-    # make different split. train now includes data from train and validation sets
-    #train = df.loc[:'2022-06'].copy() 
-    #test = df.loc['2022-07':].copy()
 
-    # prepare data frames for the Prophet model
-    pr_train = validate.purchase_amount.copy().resample('D').sum()\
-                        .to_frame()\
-                        .reset_index()\
-                        .rename({'order_date':'ds', 'purchase_amount':'y'}, axis=1)
-    pr_test = test.purchase_amount.copy().resample('D').sum()\
-                        .to_frame()\
-                        .reset_index()\
-                        .rename({'order_date':'ds', 'purchase_amount':'y'}, axis=1)
-    return pr_train, pr_test
-
-def run_test_model(df):
+def run_test_model(save_results=False):
     '''
     Calls get_prophet_data to get train and validate sets
     Creates prophet model
@@ -347,67 +321,48 @@ def run_test_model(df):
         pr_train: pd.DataFrame with original data, baseline and predictions
         pr_test: pd.DataFrame with original data, baseline and predictions
     '''
-    pr_train, pr_test = get_prophet_data(df)
-    # set the length of forecast
-    period = len(pr_test)
-    model = Prophet(growth='flat', interval_width=0.95)
-    # fit on train
-    model.fit(pr_train)
-    # make forecast
-    # periods = len of validation of test sets. 181 for daily forecasts, 27 for weekly
-    future = model.make_future_dataframe(periods=period, freq='D')
-    forecast = model.predict(future)
-    # save forecast to prediction data frame and evaluate them
-    model_name = 'Prophet'
-    forecast_train = forecast.iloc[0:len(pr_train)].yhat.tolist()
-    forecast_test = forecast.iloc[len(pr_train):].yhat.tolist()
-    pr_train['forecast'] = forecast_train
-    pr_test['forecast'] = forecast_test
-    pr_test['baseline'] = baseline
-    
-    return pr_train, pr_test
 
-def get_test_scores(pr_test:pd.DataFrame):
-    '''
-    Calculates RMSE scores for the test data
-    Parameters:
-        pr_test: pd.DataFrame, test data set with forecast and baseline columns
-    '''
-    
-    RMSE_prohet = np.sqrt(mean_squared_error(pr_test.y, pr_test.forecast))
-    RMSE_baseline = np.sqrt(mean_squared_error(pr_test.y, pr_test.baseline))
+    xgb_model = xgb.XGBRegressor(n_estimators = 500, 
+                             early_stopping_rounds = 25,
+                             learning_rate=0.01, verbosity=0)
+    xgb_model.fit(X_train_xgb, y_train, eval_set = [(X_train_xgb, y_train), (X_validate_xgb, y_validate)], verbose=False)
+   
+    # make forecast for the train set
+
+    # save forecast to prediction data frame and evaluate them
+
+    forecast = xgb_model.predict(X_test_xgb)
+
+    X_test_xgb['y'] = y_test
+    X_test_xgb['baseline'] = baseline
+    X_test_xgb['forecast'] = forecast
+    if save_results:
+        X_test_xgb.to_pickle('predictions.pickle')
+    RMSE_prohet = np.sqrt(mean_squared_error(X_test_xgb.y, X_test_xgb.forecast))
+    RMSE_baseline = np.sqrt(mean_squared_error(X_test_xgb.y, X_test_xgb.baseline))
     # set model name as an index in scores data frame
     scores.set_index('model_name', inplace=True)
     test_scores = pd.DataFrame({
                          'Baseline':[ scores.loc['baseline', 'train_score'], 
                                      scores.loc['baseline', 'validate_score'], RMSE_baseline],
-                         'Prophet':[ scores.loc['Prophet', 'train_score'],
-                                    scores.loc['Prophet', 'validate_score'], RMSE_prohet]
+                         'XGBoost':[ scores.loc['XGBoost', 'train_score'],
+                                    scores.loc['XGBoost', 'validate_score'], RMSE_prohet]
                             },index=[ 'Train RMSE', 'Validate RMSE', 'Test RMSE'])
-    return test_scores
-
-def plot_predictions(pr_test):
-    '''
-    Plot Prophet Predictions
-    '''
+    
+    display(test_scores)
+    #plot predictions
     sns.set_style("whitegrid")
-    ax = sns.lineplot(data=pr_test, x='ds',y='y', label='Actual values')
-    ax = sns.lineplot(data=pr_test, x='ds',y='forecast', label='Model forecast')
-    ax = sns.lineplot(data=pr_test, x='ds',y='baseline', label='Baseline predictions')
-    ax.set(title='Model predictions on the test set')
+    ax = sns.lineplot(data=X_test_xgb, x=X_test_xgb.index, y='y', label='Actual values')
+    ax = sns.lineplot(data=X_test_xgb, x=X_test_xgb.index, y='forecast', label='Model forecast')
+    ax = sns.lineplot(data=X_test_xgb, x=X_test_xgb.index, y='baseline', label='Baseline predictions')
+    ax.set(title='XGBoost predictions on the test set')
     ax.set(yticks=[0, 500_000, 2_000_000, 3_500_000])
     ax.set(yticklabels=['0', '500K', '2M', '3.5M'])
     ax.set(ylabel='purchase_amount')
     plt.show()
 
-def show_test():
+def save_validate_predictions():
     '''
-    Runs evaluation and plot functions for the test data
+    saves the predictions of validate set into file
     '''
-    _, pr_test = run_test_model(df)
-    test_scores = get_test_scores(pr_test)
-    display(test_scores)
-    plot_predictions(pr_test)
-    
-
-
+    predictions_validate.to_pickle('validate.pickle')
