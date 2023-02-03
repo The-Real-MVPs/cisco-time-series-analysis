@@ -147,7 +147,7 @@ We acquired the data from the [Texas Open Data Portal](https://data.texas.gov/da
     `day_of_year`: day of the year
     `week`: week of the year number
 
-3. **Prepare** The original data set had two issues. First, there was lots of missing data in 2017. We took decision to remove everything before and including 2017 and  start our observation starting from January, 1 2018. Second, the original data contains the accounting information about every transaction where every row represents a transaction. One company could have many transactions per day, including those where the `purchase_amount` was equal to zero, one cent or being negative. To fix this issue and make the data more readable we have created as well a summary data frame whith the final `purchase_amount` per day per company. This combined the number of rows from 261,886 to 34,401 rows. 
+3. **Prepare** The original data set had two issues. First, there was lots of missing data in 2017. We took decision to remove everything from 2017 and add +1 year to everything before. Second, the original data contains the accounting information about every transaction where every row represents a transaction. One company could have many transactions per day, including those where the `purchase_amount` was equal to zero, one cent or being negative. To fix this issue and make the data more readable we have created as well a summary data frame whith the final `purchase_amount` per day per company. This combined the number of rows from 261,886 to 34,401 rows. 
 
 - Outliers were kept for this iteration of explore of modeling.
 - To avoid data leakagee divided the data into train and test sets. 
