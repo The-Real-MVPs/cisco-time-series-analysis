@@ -3,9 +3,12 @@ import numpy as np
 import os
 
 ########### GLOBAL VARIABLES ###########
-
-
+start2018_ = False
 ######## ACQUIRE FUNCTIONS #############
+
+def get_start2018():
+    
+    return start2018_
 
 def acquire_data() -> pd.DataFrame:
     '''
@@ -47,7 +50,7 @@ def acquire_data() -> pd.DataFrame:
             # if file not found print:
             print('The file doesn\'t exist. Please, download it from the link provided in the Readme file')  
 
-def basic_clean(df:pd.DataFrame, start2018=False) -> pd.DataFrame:
+def basic_clean(df:pd.DataFrame, start2018=start2018_) -> pd.DataFrame:
     '''
     Remove unneeded columns
     Create a copy of order date
@@ -101,7 +104,7 @@ def basic_clean(df:pd.DataFrame, start2018=False) -> pd.DataFrame:
     df.order_date_copy = pd.to_datetime(df.order_date_copy)
 
     # drop 2017 and move data frame year up (2014-2016 to 2015-2017)
-    df = drop2017_and_move2016_up(df)    
+    #df = drop2017_and_move2016_up(df)    
 
     # save the shipped date as index
     df = df.set_index('order_date').sort_index()
@@ -120,13 +123,11 @@ def drop2017_and_move2016_up(df):
     dataframe and adding a year to years 2014-2016 to creates a seam between 2016 and 2018. 
     return dataframe with new years for temp_df
     '''
-    temp_df = df[(df.order_date.dt.year==2014)|(df.order_date.dt.year==2015)|(df.order_date.dt.year==2016)].copy()
-    temp_df['order_date'] = temp_df['order_date'] +  pd.offsets.DateOffset(years=1)
+    before2017 = df.loc[:'2016'].copy()
+    after2017 = df.loc['2018':].copy()
+    before2017.index = (before2017.index + pd.Timedelta('1 Y') ).normalize()
     
-    temp2 = df[(df.order_date.dt.year==2018)|(df.order_date.dt.year==2019)|(df.order_date.dt.year==2020)|(df.order_date.dt.year==2021)|(df.order_date.dt.year==2022)]
-    final_df = pd.concat([temp_df, temp2], axis =0)
-    
-    return final_df
+    return pd.concat([before2017, after2017], axis=0)
 
 def add_date_features(df):
     '''
@@ -189,7 +190,7 @@ def change_column_order(df):
                      'purchase_amount']
     return df[columns_order]
 
-def get_clean_data(start2018=False):
+def get_clean_data(keep2017=False, start2018=start2018_):
     '''
     combines all functions from above
     '''
@@ -198,17 +199,43 @@ def get_clean_data(start2018=False):
     df = add_date_features(df)
     df = change_customer_type(df)
     df = change_column_order(df)
+    if not keep2017:
+        df = drop2017_and_move2016_up(df)
 
     return df
 
 
-def split_data(df, explore=True):
+def split_data(df):
     '''
     splits the data frame based on date
     '''
-    if explore:
-        train = df.loc[:'2021']
-        test = df.loc['2022']
-        return train, test
-    else:
-        return df
+    train = df.loc[:'2021'].copy()
+    test = df.loc['2022'].copy()
+    return train, test
+
+def create_customertype_subgroups(train):
+    '''
+    split data by the customer type
+    '''
+    types = train[['purchase_amount','customer_type']]
+    k_12= types[types["customer_type"]=='K-12']
+    local_gov = types[types["customer_type"]=='Local Government']
+    state_agency = types[types["customer_type"]=='State Agency']
+    higher_ed = types[types["customer_type"]=='Higher Ed']
+    other = types[(types['customer_type']=='Assistance Org') | (types['customer_type']=="Other")]
+    
+    return k_12, local_gov, state_agency, higher_ed, other
+
+def change_XGB_train(X_train_xgb, y_train):
+    '''
+    removes pandemic data from 2019 and 2020
+    '''
+    X_before = X_train_xgb.loc[:'2019-06'].copy()
+    X_after = X_train_xgb.loc['2020-07':].copy()
+    X_before.index = (X_before.index + pd.Timedelta('1 Y') ).normalize()
+    y_before = y_train.loc[:'2019-06'].copy()
+    y_after = y_train.loc['2020-07':].copy()
+    y_before.index = (y_before.index + pd.Timedelta('1 Y') ).normalize()
+    XG =  pd.concat([X_before, X_after], axis=0)
+    yxg = pd.concat([y_before, y_after], axis=0)
+    return XG, yxg

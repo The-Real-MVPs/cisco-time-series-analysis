@@ -1,4 +1,5 @@
 
+### start 2014
 # common data science libraries
 import numpy as np
 import pandas as pd
@@ -32,16 +33,21 @@ plt.rc(
 import src.wrangle as wr
 import src.summaries as s
 
+start2018_ = wr.get_start2018()
 # declaring global variables
-df = s.get_summary_df(wr.get_clean_data(start2018=True))
-train, test = wr.split_data(df, explore=True)
+df = s.get_summary_df(wr.get_clean_data(start2018=start2018_))
+df = wr.drop2017_and_move2016_up(df)
+train, _ = wr.split_data(df)
 #validate = test.loc[:'2022-06'].copy() 
 #test = test.loc['2022-07':]
 
 # create a df with purchase amount by the end of the day only
 train_ts = train.purchase_amount.resample('D').sum().to_frame()
-# add date features to train_ts
+# add date features to train_ts for daily data frames and stat tests
 train_ts = wr.add_date_features(train_ts)
+y_daily = train.purchase_amount.resample('D').sum()
+y_weekly = train.purchase_amount.resample('W').sum()
+y_monthly = train.purchase_amount.resample('M').sum()
 
 # separate by day for stat test
 mon = train_ts[train_ts.day_name == 'Monday']
@@ -67,22 +73,44 @@ train_q['quarter'] = train_q.index.quarter
 alpha = 0.05
 
 #creating a dataframe for the 'pandemic year'
-train_pdf,_ = wr.split_data(wr.get_clean_data(start2018=True))
+train_pdf,_ = wr.split_data(wr.get_clean_data(start2018=start2018_))
 pandemic_df = train_pdf.loc[train_pdf.index >= '11-01-2019']
 
-
+###### question 1 target var
 def q1_show_ts():
     '''
     plots daily sales for the X_train
     '''
     #plt.figure(figsize=(12,6))
+
+    # create a temp data frame that will include all data with problematic 2017
+    temp = s.get_summary_df(wr.get_clean_data(keep2017=True))
+    train_temp, _ = wr.split_data(temp)
     fig, ax = plt.subplots(figsize=(12,6))
-    ax = train_ts.plot()
+    ax = train_temp.purchase_amount.resample('D').sum().plot(alpha=0.7)
     plt.title('Daily purchase amount', size=18, weight='bold')
     ax.set(yticks=[0, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 6_000_000, 7_000_000])
     ax.set(yticklabels=['0', '1M', '2M', '3M', '4M', '5M', '6M', '7M'])
     plt.show()
 
+def q1_show_merged_ts():
+    '''
+    plots daily sales for the X_train
+    '''
+    #plt.figure(figsize=(12,6))
+
+    # create a temp data frame that will include all data with problematic 2017
+    fig, ax = plt.subplots(figsize=(12,6))
+    ax = y_daily.plot(alpha=0.7)
+    plt.title('Daily purchase amount after removing 2017', size=18, weight='bold')
+    ax.set(yticks=[0, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 6_000_000, 7_000_000])
+    ax.set(yticklabels=['0', '1M', '2M', '3M', '4M', '5M', '6M', '7M'])
+    ax.set(xticks=['2016', '2017', '2018', '2019', '2020', '2021'])
+    ax.set(xticklabels=['Jan 2015', 'Jan 2016', 'Jan 2018', 'Jan 2019', 'Jan 2020', 'Jan 2021'])
+    plt.show()
+
+
+###### question 2 customer types
 def autopct_format(values):
     '''
     the function accept value_counts from outcome_type
@@ -111,33 +139,15 @@ def viz_customer_types():
     plt.title('Customer types')
     plt.show()
 
-def q1_viz_per_order():
-    
-    # order for graphs
-    months =['January', 'February', 'March', 'April', 
-             'May', 'June', 'July', 'August', 
-             'September', 'October', 'November', 'December']
+######## question 3 purchase amount by day
+def q3_viz():
+    '''
+    plot purchase amount by day
+    '''
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
     # visualize 
-    ax = sns.barplot(data = train, x='day_name', y='purchase_amount', order=days)
-    plt.xlabel('Day of the order')
-    plt.ylabel('Purchase amount')
-    x_left, x_right = ax.get_xlim()
-    ax.hlines(train.purchase_amount.mean(), x_left, x_right, ls='--', color='purple')
-    plt.title('Average of Total Purchase Amount by Day')
-    plt.show()
-
-def q1_viz():
-    
-    # order for graphs
-    months =['January', 'February', 'March', 'April', 
-             'May', 'June', 'July', 'August', 
-             'September', 'October', 'November', 'December']
-    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-
-    # visualize 
-    ax = sns.barplot(data = train_ts, x='day_name', y='purchase_amount', order=days)
+    ax = sns.barplot(data = train_ts, x='day_name', y='purchase_amount', palette=color_pal, order=days)
     plt.xlabel('')
     plt.ylabel('Purchase amount')
     x_left, x_right = ax.get_xlim()
@@ -145,7 +155,7 @@ def q1_viz():
     plt.title('Average of Total Purchase Amount by Day')
     plt.show()
 
-def q1_ttest():
+def q3_ttest():
     '''
     One sample T-test. Calculates t and p values for every day of the week and saves them into a data frame.
     Returns data frame
@@ -160,32 +170,14 @@ def q1_ttest():
     ttest_results_days.set_index('Day', inplace=True)
     return ttest_results_days
 
-def q1_anova():
-    '''
-    run Anova test to compare means of sales on Mon, Tue and Wed
-    '''
-    # define p-value
-    p = 1
-    
-    # check for equal varicances. Run kruskall wallis or anova tests
-    if stats.levene(mon.purchase_amount, tue.purchase_amount, wed.purchase_amount)[1] < alpha:
-        print('Variances are different. Use Kruskall Wallis')
-        _, p = stats.kruskal(mon.purchase_amount, tue.purchase_amount, wed.purchase_amount)
-    else:
-        print('Variances are equal. Use ANOVA')
-        _, p = stats.f_oneway(mon.purchase_amount, tue.purchase_amount, wed.purchase_amount)
-    print('====================')
-    if p < alpha:
-        print('Reject null hypothesis')
-        print('There is a significant difference in means of purchase amount during work days Monday through Wednesday')
-    else:
-        print('Fail to reject null hypothesis')
-        print('There is no significant difference in means of purchase amount during work days Monday through Wednesday')
-    
-def q2_viz():
+
+##### question 4 purchase amount by month  
+def q4_viz():
     
     # visualize 
-    ax = sns.barplot(data=train_m, x='month_name', y='purchase_amount', palette=color_pal)
+    months =['January', 'February', 'March', 'April', 'May', 
+             'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    ax = sns.barplot(data=train_m, x='month_name', y='purchase_amount', palette=color_pal, order=months)
     plt.xlabel('')
     plt.ylabel('Purchase amount')
     x_left, x_right = ax.get_xlim()
@@ -193,7 +185,7 @@ def q2_viz():
     plt.title('Average of Total Purchase Amount by Month')
     plt.show()
 
-def q2_ttest():
+def q4_ttest():
     '''
     Run one sample T-test to check in which month sales are significantly different from the average monthly sales
     '''
@@ -207,15 +199,18 @@ def q2_ttest():
     ttest_results_months.set_index('Month', inplace=True)
     return ttest_results_months.sort_values(by='T-value', ascending=False)
 
-def q3_viz():
-    
+###### question 5 purchase amount per quarter
+def q5_viz():
+    '''
+    show purchase amount by quarter
+    '''
     #sns.set_color_codes("muted")
     ax = sns.barplot(x="quarter", y="purchase_amount", data=train_q, palette=color_pal)
     x_left, x_right = ax.get_xlim()
     ax.hlines(train_q.purchase_amount.mean(), x_left, x_right, ls='--', color='purple')    
     plt.title('Average of Total Purchase Amount by Quarter')
 
-def q3_ttest():
+def q5_ttest():
     '''
     run stat test for quarters
     '''
@@ -226,8 +221,9 @@ def q3_ttest():
         ttest_results_quarters.loc[len(ttest_results_quarters)] = [i, t, p]
     ttest_results_quarters.set_index('Quarter', inplace=True)
     return ttest_results_quarters   
-    
-def q4_viz():
+
+#### question 6 monthly changes in sales   
+def q6_viz():
     '''
     plot monthly % change in sales
     '''
@@ -238,8 +234,8 @@ def q4_viz():
     (y_month.diff() / y_month.shift()).plot(alpha=.5, lw=3, c='#1a34ff', 
                                           marker='D', mfc='#f2cb30',mec='black', title='Monthly % Change in Total Purchase Amount');
     
-    
-def q5_vizA():
+##### question 7    
+def q7_vizA():
     '''
     shows viz with huge order quantity spike.
     '''
@@ -248,7 +244,7 @@ def q5_vizA():
     plt.title('Order quantity outlier')
     plt.show()
 
-def q5_thhsc():
+def q7_thhsc():
     '''
     closer look at the outlier
     '''
@@ -268,13 +264,13 @@ def q5_thhsc():
     plt.legend()
     plt.show()
                               
-def q5_vizB():
+def q7_vizB():
          
     #fix, ax = plt.subplots(figsize = (15,5))
     pandemic_df['order_quantity'].plot(ax=ax, xlabel='Order Quantity')
     plt.show()                         
                               
-def q5_vizC():
+def q7_vizC():
       
     jan2 = pandemic_df.loc[pandemic_df.index == '01-02-2020']
     jan2purchases = jan2.sort_values(by=['order_quantity'], ascending = False).head(6)

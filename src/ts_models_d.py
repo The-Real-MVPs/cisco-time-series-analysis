@@ -27,6 +27,7 @@ import src.summaries as s
 # import graphic modules
 import matplotlib.pyplot as plt
 import seaborn as sns
+
 # set default parameters
 plt.style.use("seaborn-whitegrid") # returns warnings
 plt.rc(
@@ -51,8 +52,10 @@ plt.rcParams.update({'figure.dpi':120})
 # set default parameters for floats
 pd.options.display.float_format = '{:,.2f}'.format
 
+start2018_ = wr.get_start2018()
 ##### get the data
-df = s.get_summary_df(wr.get_clean_data(start2018=True))
+df = s.get_summary_df(wr.get_clean_data())
+df = wr.drop2017_and_move2016_up(df)
 # define target vaiable
 target = 'purchase_amount'
 #### split into train, validate, test sets
@@ -88,7 +91,7 @@ y_test = X_test_xgb.purchase_amount
 X_train_xgb = X_train_xgb[features]
 X_validate_xgb = X_validate_xgb[features]
 X_test_xgb = X_test_xgb[features]
-
+XG, yxg = wr.change_XGB_train(X_train_xgb, y_train)
 # data frames to keep predictions
 predictions_train = X_train[target].to_frame()
 predictions_validate = X_validate[target].to_frame()
@@ -107,7 +110,7 @@ def show_ts():
     '''
     plt.figure(figsize = (11,4))
     ax  = X_train_ts.plot(alpha=0.7)
-    plt.title('Daily purchase amount')
+    plt.title('Data Merge')
     ax.set(yticks=[0, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 6_000_000, 7_000_000])
     ax.set(yticklabels=['0', '1M', '2M', '3M', '4M', '5M', '6M', '7M'])
     plt.show()
@@ -287,6 +290,49 @@ def create_arima_models():
     model_arima(0, 0, 5)
     display(scores)
 
+#### PROPHET
+
+# def model_prophet(linear=False, linear_ranges=[0.2, 0.3, 0.5, 0.6, 0.7, 0.8]):
+#     '''
+    
+#     '''
+#     period = len(pr_validate)
+    
+#     if linear:
+#         for r in linear_ranges:
+#             # create the model
+#             # linear ranges to put into changepoint_range, identify proportion of historical data
+#             # interval_width for the confidence interval, didn't change any values though
+#             model = Prophet(growth='linear', changepoint_range=r, interval_width=0.95)
+#             # fit on train
+#             model.fit(pr_train)
+#             # make forecast
+#             # periods = len of validation of test sets. 181 for daily forecasts, 27 for weekly
+#             future = model.make_future_dataframe(periods=period, freq='D')
+#             forecast = model.predict(future)
+#             # save forecast to prediction data frame and evaluate them
+#             model_name = 'Linear Prophet ' + str(r)
+#             predictions_train[model_name] = forecast.iloc[0:len(pr_train)].yhat.tolist()
+#             predictions_validate[model_name] = forecast.iloc[len(pr_train):].yhat.tolist()
+#             evaluate_rmse(target, model_name)
+#     else:
+#         # if not linear, use 'flat' growth, changepoint_range doesn't matter in this case, use default 0.8
+#         model = Prophet(growth='flat', interval_width=0.95)
+#         # fit on train
+#         model.fit(pr_train)
+#         # make forecast
+#         # periods = len of validation of test sets. 181 for daily forecasts, 27 for weekly
+#         future = model.make_future_dataframe(periods=period, freq='D')
+#         forecast = model.predict(future)
+#         # save forecast to prediction data frame and evaluate them
+#         model_name = 'Prophet'
+#         predictions_train[model_name] = forecast.iloc[0:len(pr_train)].yhat.tolist()
+#         predictions_validate[model_name] = forecast.iloc[len(pr_train):].yhat.tolist()
+#         evaluate_rmse(target, model_name)
+
+# def create_prophet():
+#     model_prophet()
+#     model_prophet(linear=True)
 
 
 def run_xgboost():
@@ -308,7 +354,6 @@ def run_xgboost():
 ###### run XGBoost on test set
 
 
-
 def run_test_model(save_results=False):
     '''
     Calls get_prophet_data to get train and validate sets
@@ -325,8 +370,7 @@ def run_test_model(save_results=False):
     xgb_model = xgb.XGBRegressor(n_estimators = 500, 
                              early_stopping_rounds = 25,
                              learning_rate=0.01, verbosity=0)
-    xgb_model.fit(X_train_xgb, y_train, eval_set = [(X_train_xgb, y_train), (X_validate_xgb, y_validate)], verbose=False)
-   
+    xgb_model.fit(XG, yxg, eval_set = [(XG, yxg), (X_validate_xgb, y_validate)], verbose=False)
     # make forecast for the train set
 
     # save forecast to prediction data frame and evaluate them
