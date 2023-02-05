@@ -239,3 +239,20 @@ def change_XGB_train(X_train_xgb, y_train):
     XG =  pd.concat([X_before, X_after], axis=0)
     yxg = pd.concat([y_before, y_after], axis=0)
     return XG, yxg
+
+def change_ts(train_ts):
+    '''
+    removes pandemic data from 2019 and 2020
+    Parameters:
+        train_ts: train time series
+    '''
+    before = train_ts.loc[:'2019-06'].copy()
+    after = train_ts.loc['2020-07':].copy()
+    
+    before.index = (before.index + pd.Timedelta('1 Y')).normalize()
+
+    train_new =  pd.concat([before, after], axis=0)
+
+    train_new.index = pd.DatetimeIndex(train_new.index).to_period('D')
+
+    return train_new

@@ -6,7 +6,7 @@ import statsmodels.api as sm
 import xgboost as xgb
 # pmdarima and prophet need installation!
 #import pmdarima as pm # pip install pmdarima
-import prophet # python -m pip install prophet
+#import prophet # python -m pip install prophet
 #from prophet import Prophet
 from statsmodels.tsa.stattools import adfuller, kpss, acf
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
@@ -27,7 +27,6 @@ import src.summaries as s
 # import graphic modules
 import matplotlib.pyplot as plt
 import seaborn as sns
-
 # set default parameters
 plt.style.use("seaborn-whitegrid") # returns warnings
 plt.rc(
@@ -91,7 +90,8 @@ y_test = X_test_xgb.purchase_amount
 X_train_xgb = X_train_xgb[features]
 X_validate_xgb = X_validate_xgb[features]
 X_test_xgb = X_test_xgb[features]
-XG, yxg = wr.change_XGB_train(X_train_xgb, y_train)
+# cut pandemic 
+#X_train_ts =  wr.change_ts(X_train_ts)
 # data frames to keep predictions
 predictions_train = X_train[target].to_frame()
 predictions_validate = X_validate[target].to_frame()
@@ -290,49 +290,6 @@ def create_arima_models():
     model_arima(0, 0, 5)
     display(scores)
 
-#### PROPHET
-
-# def model_prophet(linear=False, linear_ranges=[0.2, 0.3, 0.5, 0.6, 0.7, 0.8]):
-#     '''
-    
-#     '''
-#     period = len(pr_validate)
-    
-#     if linear:
-#         for r in linear_ranges:
-#             # create the model
-#             # linear ranges to put into changepoint_range, identify proportion of historical data
-#             # interval_width for the confidence interval, didn't change any values though
-#             model = Prophet(growth='linear', changepoint_range=r, interval_width=0.95)
-#             # fit on train
-#             model.fit(pr_train)
-#             # make forecast
-#             # periods = len of validation of test sets. 181 for daily forecasts, 27 for weekly
-#             future = model.make_future_dataframe(periods=period, freq='D')
-#             forecast = model.predict(future)
-#             # save forecast to prediction data frame and evaluate them
-#             model_name = 'Linear Prophet ' + str(r)
-#             predictions_train[model_name] = forecast.iloc[0:len(pr_train)].yhat.tolist()
-#             predictions_validate[model_name] = forecast.iloc[len(pr_train):].yhat.tolist()
-#             evaluate_rmse(target, model_name)
-#     else:
-#         # if not linear, use 'flat' growth, changepoint_range doesn't matter in this case, use default 0.8
-#         model = Prophet(growth='flat', interval_width=0.95)
-#         # fit on train
-#         model.fit(pr_train)
-#         # make forecast
-#         # periods = len of validation of test sets. 181 for daily forecasts, 27 for weekly
-#         future = model.make_future_dataframe(periods=period, freq='D')
-#         forecast = model.predict(future)
-#         # save forecast to prediction data frame and evaluate them
-#         model_name = 'Prophet'
-#         predictions_train[model_name] = forecast.iloc[0:len(pr_train)].yhat.tolist()
-#         predictions_validate[model_name] = forecast.iloc[len(pr_train):].yhat.tolist()
-#         evaluate_rmse(target, model_name)
-
-# def create_prophet():
-#     model_prophet()
-#     model_prophet(linear=True)
 
 
 def run_xgboost():
@@ -341,10 +298,12 @@ def run_xgboost():
     Saves predictions to prediction data frames
     Evaluates the model performance
     '''
+
     xgb_model = xgb.XGBRegressor(n_estimators = 500, 
                              early_stopping_rounds = 25,
                              learning_rate=0.01, verbosity=0)
-    xgb_model.fit(X_train_xgb, y_train, eval_set = [(X_train_xgb, y_train), (X_validate_xgb, y_validate)], verbose=False)
+    XG, yxg = wr.change_XGB_train(X_train_xgb, y_train)
+    xgb_model.fit(XG, yxg, eval_set = [(XG, yxg), (X_validate_xgb, y_validate)], verbose=False)
     predictions_train['XGBoost'] = xgb_model.predict(X_train_xgb)
     predictions_validate['XGBoost'] = xgb_model.predict(X_validate_xgb)
     
@@ -352,6 +311,7 @@ def run_xgboost():
     display(scores)
 
 ###### run XGBoost on test set
+
 
 
 def run_test_model(save_results=False):
@@ -370,6 +330,7 @@ def run_test_model(save_results=False):
     xgb_model = xgb.XGBRegressor(n_estimators = 500, 
                              early_stopping_rounds = 25,
                              learning_rate=0.01, verbosity=0)
+    XG, yxg = wr.change_XGB_train(X_train_xgb, y_train)
     xgb_model.fit(XG, yxg, eval_set = [(XG, yxg), (X_validate_xgb, y_validate)], verbose=False)
     # make forecast for the train set
 
@@ -410,3 +371,17 @@ def save_validate_predictions():
     saves the predictions of validate set into file
     '''
     predictions_validate.to_pickle('validate.pickle')
+
+def estimate():
+    '''
+    calculates the sum of actual purchase amount and predictions
+    '''
+    X = pd.read_pickle('predictions.pickle')
+    actual_sum = X.y.sum()
+    baseline_results = X.baseline.sum()
+    forecast_results = X.forecast.sum()
+    d = {'actual purchase amount': actual_sum,
+            ' baseline predidtions':baseline_results,
+        'model predictions': forecast_results,
+        'difference': forecast_results - actual_sum}
+    return pd.DataFrame(d, index=['Amount in USD']).T
