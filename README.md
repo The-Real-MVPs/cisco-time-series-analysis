@@ -46,11 +46,11 @@ The data file contains information about DIR Cooperative Contract Sales. To get 
     - Our target variable purchase_amount doesn't show the seasonality or trend. It looks more like noise data that is extremely hard to predict using traditional statistic methods.
 
     - Cisco customers represented in DIR data set are divided into following groups:
-        - Local Governments - 34.82%
-        - Independent School Districts - 31.80 %
-        - Higher Education Institutions - 22.54%
-        - State Agencies - 10.27%
-        - Other public agencies - 0.56%
+        - Local Governments - 36.8%
+        - Independent School Districts - 31.9 %
+        - Higher Education Institutions - 21.1%
+        - State Agencies - 9.8%
+        - Other public agencies - 0.4%
     - All sales per day of the week significantly differ from the average daily sales. 
     - Week days have higher sales than the average and weekend days almost don't have sales. 
     - Monday, Tuesaday and Wednesday seem to have same average amount of sales. 
