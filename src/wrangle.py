@@ -248,8 +248,8 @@ def change_ts(train_ts):
     '''
     before = train_ts.loc[:'2019-06'].copy()
     after = train_ts.loc['2020-07':].copy()
-    
-    before.index = (before.index + pd.Timedelta('1 Y')).normalize()
+    # one extra day because of the leap year 2020
+    before.index = (before.index + pd.Timedelta('1 Y') + pd.Timedelta('1 D')).normalize()
 
     train_new =  pd.concat([before, after], axis=0)
 

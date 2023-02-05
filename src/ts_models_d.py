@@ -357,6 +357,7 @@ def run_test_model(save_results=False):
     display(test_scores)
     #plot predictions
     sns.set_style("whitegrid")
+    plt.figure(figsize = (12,4))
     ax = sns.lineplot(data=X_test_xgb, x=X_test_xgb.index, y='y', label='Actual values')
     ax = sns.lineplot(data=X_test_xgb, x=X_test_xgb.index, y='forecast', label='Model forecast')
     ax = sns.lineplot(data=X_test_xgb, x=X_test_xgb.index, y='baseline', label='Baseline predictions')
