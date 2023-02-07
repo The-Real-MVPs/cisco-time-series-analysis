@@ -144,12 +144,19 @@ def viz_monthly_trend():
     '''
     Creates seasonal decomposition and plots the trend line of total monthly purchase amount
     '''
-
-    ax = sns.regplot(y=decomposition_m.trend, x=decomposition_m.time_dummy)
-    plt.title('Monthly purchase amount trend')
-    plt.xlabel(None)
+    plt.figure(figsize=(11,4))
+    ax = sns.regplot(y=decomposition_m.trend, x=decomposition_m.time_dummy, scatter=False, label='Long-Term Trend')
+    ax = sns.lineplot(y=decomposition_m.trend, x=decomposition_m.time_dummy, lw=2, label='Real Trend')
+    plt.title('Real and Long-Term Trends')
+    ax.set(yticks=[10_000_000, 15_000_000, 20_000_000, 25_000_000])
+    ax.set(yticklabels=['10M', '15M', '20M', '25M'])
     ax.set(xticks=[7, 19, 31, 43, 55, 67])
     ax.set(xticklabels=['Jan 2015', 'Jan 2016', 'Jan 2018', 'Jan 2019', 'Jan 2020', 'Jan 2021'])
+    #plt.yticks(fontsize=15)
+    #plt.xticks(fontsize=15)
+    plt.ylabel('Monthly Purchase Amount')
+    plt.xlabel(None)
+    plt.legend(loc='lower right')
     plt.show()
 
 def show_all_trends():
@@ -164,6 +171,7 @@ def show_all_trends():
     overall_trend = decomposition_m.trend
     # create time dummies
     time_dummy = decomposition_m.time_dummy
+    plt.figure(figsize=(11,4))
     ax = sns.regplot(x=time_dummy, y=k12_trend, scatter=False, label='School districts')
     ax = sns.regplot(x=time_dummy, y=hedu_trend, scatter=False, label='Higher Education')
     ax = sns.regplot(x=time_dummy, y=loc_gov_trend, scatter=False, label='Local goverments', line_kws={'alpha':0.3})
@@ -175,9 +183,9 @@ def show_all_trends():
     plt.xlabel(None)
     ax.set(yticks=[4_000_000, 5_000_000, 6_000_000, 7_000_000, 8_000_000])
     ax.set(yticklabels=['$4M', '$5M', '$6M', '$7M', '$8M'])
-    plt.ylabel('Monthly purchases')
+    plt.ylabel('Monthly Purchase Amount')
     plt.legend()
-    plt.title('Monthly purchase amount trends')
+    plt.title('Long-Term Trends by Customer Type')
     plt.show()
 
 def show_hedu_trend2018():
@@ -185,35 +193,44 @@ def show_hedu_trend2018():
     show trend for 2018 for higher education subtype
     '''
     decomposition_higher_ed_m2018['time_dummy'] = np.arange(len(decomposition_higher_ed_m2018.index))
-    ax = sns.regplot(data=decomposition_higher_ed_m2018, x='time_dummy', y='trend')
-    plt.title('Monthly purchases trend for Higher Education Institutions after 2018')
+    plt.figure(figsize=(11,4))
+    ax = sns.regplot(data=decomposition_higher_ed_m2018, x='time_dummy', y='trend',scatter=False, label='Long-Term Trend')
+    ax = sns.lineplot(data=decomposition_higher_ed_m2018, x='time_dummy', y='trend', lw=2, label='Real Trend')
+    plt.title('Higher Education Institutions Trend After 2018')
     plt.xlabel(None)
+    plt.ylabel(None)
     ax.set(xticks=[13, 23, 33])
     ax.set(xticklabels=['Jan 2019', 'Jan 2020', 'Jan 2021'])
     ax.set(yticks=[])
+    plt.legend()
     plt.show()
 
-def show_school_trend_before():
-    '''
-    show the school's trend before 2020
-    '''
-    decomposition_k_12m_before['time_dummy'] = np.arange(len(decomposition_k_12m_before.index))
-    ax = sns.regplot(data=decomposition_k_12m_before, x='time_dummy', y='trend')
-    plt.title('Monthly purchases trend for School Districts before COVID-2019')
-    plt.xlabel(None)
-    ax.set(xticks=[7, 19, 31, 43, 55])
-    ax.set(xticklabels=['Jan 2015', 'Jan 2016', 'Jan 2018', 'Jan 2019', 'Jan 2020'])
-    ax.set(yticks=[])
-    plt.show()
+# def show_school_trend_before():
+#     '''
+#     show the school's trend before 2020
+
+#     '''
+#     decomposition_k_12m_before['time_dummy'] = np.arange(len(decomposition_k_12m_before.index))
+#     ax = sns.regplot(data=decomposition_k_12m_before, x='time_dummy', y='trend')
+#     plt.title('Trend for School Districts before COVID-2019')
+#     plt.xlabel(None)
+#     ax.set(xticks=[7, 19, 31, 43, 55])
+#     ax.set(xticklabels=['Jan 2015', 'Jan 2016', 'Jan 2018', 'Jan 2019', 'Jan 2020'])
+#     ax.set(yticks=[])
+#     plt.show()
 
 def viz_school_purchases():
     '''
     Creates a plot with 
     '''
-    ax = k_12m.loc[:'2020'].plot(label='Before COVID-2019', lw=2)
-    ax = k_12m.loc['2020':].plot(label='After COVID-2019', lw=2)
-    plt.title('Monthly total purchase amount for school districts before and after COVID-2019')
+    plt.figure(figsize=(12, 5))
+    ax = k_12m.loc[:'2020'].plot(label='Before COVID-19', lw=2)
+    ax = k_12m.loc['2020':].plot(label='During COVID-19', lw=2)
+    plt.title('Monthly Total Purchase Amount For School Districts Before and During COVID-19')
     ax.set(yticks=[10_000_000, 20_000_000])
     ax.set(yticklabels=['$10M', '$20M'])
-    plt.legend()
+    plt.legend(fontsize=20)
+    plt.xlabel(None)
+    #plt.yticks(fontsize=15)
+    #plt.xticks(fontsize=15)
     plt.show()
