@@ -1,8 +1,8 @@
 ## Project Links
 * Click the buttons below to see the Project Repo and Canva presentation.  
 
-[![GitHub](https://img.shields.io/badge/Project%20GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/The-Real-MVPs/cisco-time-series-analysis)[![Canva](https://img.shields.io/badge/Project%20Canva-%2300C4CC.svg?style=for-the-badge&logo=Canva&logoColor=white)](https://www.canva.com/design/DAFZcPULMG4/fGHlG_J86ECvpvWeMMNh4w/edit)
-[![Tableau Dashboard](https://img.shields.io/badge/Project%20Tableau-%B4D5DECC.svg?style=for-the-badge&logo=Tableau&logoColor=white)](https://public.tableau.com/app/profile/allante.staten/viz/CiscoDashboard/Dashboard1)
+[![GitHub](https://img.shields.io/badge/Project%20GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/The-Real-MVPs/cisco-time-series-analysis)[![Canva](https://img.shields.io/badge/Canva%20Presentation-%2300C4CC.svg?style=for-the-badge&logo=Canva&logoColor=white)](https://www.canva.com/design/DAFZcPULMG4/fGHlG_J86ECvpvWeMMNh4w/edit)
+[![Tableau Dashboard](https://img.shields.io/badge/Tableau%20Dashboard-%B4D5DECC.svg?style=for-the-badge&logo=Tableau&logoColor=white)](https://public.tableau.com/app/profile/allante.staten/viz/CiscoDashboard/Dashboard1)
 
 ## Meet Group 1
 |Team Member         |[LinkedIn]                                               |[GitHub]                              |
