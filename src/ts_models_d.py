@@ -91,7 +91,7 @@ X_train_xgb = X_train_xgb[features]
 X_validate_xgb = X_validate_xgb[features]
 X_test_xgb = X_test_xgb[features]
 # cut pandemic 
-#X_train_ts =  wr.change_ts(X_train_ts)
+X_train_ts =  wr.change_ts(X_train_ts)
 # data frames to keep predictions
 predictions_train = X_train[target].to_frame()
 predictions_validate = X_validate[target].to_frame()

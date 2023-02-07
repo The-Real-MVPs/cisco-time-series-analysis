@@ -253,6 +253,6 @@ def change_ts(train_ts):
 
     train_new =  pd.concat([before, after], axis=0)
 
-    train_new.index = pd.DatetimeIndex(train_new.index).to_period('D')
+    #train_new.index = pd.DatetimeIndex(train_new.index).to_period('D')
 
     return train_new

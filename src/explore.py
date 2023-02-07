@@ -147,6 +147,7 @@ def q3_viz():
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
     # visualize 
+    plt.figure(figsize=(12,4))
     ax = sns.barplot(data = train_ts, x='day_name', y='purchase_amount', palette=color_pal, order=days)
     plt.xlabel('')
     plt.ylabel('Purchase amount')
