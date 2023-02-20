@@ -4,7 +4,7 @@
 [![GitHub](https://img.shields.io/badge/Project%20GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/The-Real-MVPs/cisco-time-series-analysis)[![Canva](https://img.shields.io/badge/Canva%20Presentation-%2300C4CC.svg?style=for-the-badge&logo=Canva&logoColor=white)](https://www.canva.com/design/DAFZcPULMG4/ZNzwO2oXIp_OwowgUakIgw/view?utm_content=DAFZcPULMG4&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink)
 [![Tableau Dashboard](https://img.shields.io/badge/Tableau%20Dashboard-%B4D5DECC.svg?style=for-the-badge&logo=Tableau&logoColor=white)](https://public.tableau.com/app/profile/allante.staten/viz/CiscoDashboard/Dashboard1)
 
-## Meet Group 1
+## Meet The Group
 |Team Member         |[LinkedIn]                                               |[GitHub]                              |
 |:-------------------|:--------------------------------------------------------|:-------------------------------------|
 |Allante Staten      |[![LinkedIn](https://img.shields.io/badge/Allante's%20linkedin-%230077B5.svg?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/allantestaten)|[![GitHub](https://img.shields.io/badge/Allante's%20GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/allantestaten)|
@@ -209,11 +209,12 @@ We created ARIMA statistical models and XGBoost Regressor. XGBoost Regressor out
 
 
 ## Modeling Summary:
-- Our best model beats a baseline on all train, validation and test sets. Anyway, there is much more work to do. It overestimates the total purchase amount from the test set by 89%.
-- We definitely recommend to use the data after mid 2020 only for training the model in order to make a forecast because of the current negative trend
-- Another approach would be splitting data on 5 different sets based on the customer type and create different models for each set.
+- Our best model beats a baseline on all train, validation and test sets. There is yet much more work which can be done to improve model results. As it stands, the model overestimates the total purchase amount from the test set by 89%.
+- We recommend to use the data after mid 2020 only for training the model in order to make a forecast because of the current anomalously negative trend. 
+- Another approach to make model more sophisticated and potentially much more accurate would be to split data into several different data sets based on the customer type and create different models for each set.
 
-In fact, we have create a forecast for Cisco Systems, Inc trades with public agencies. We used XGBoost as our prediction model and trained it on the data from June, 2020 till the end of 2021, and validated it on the available data for 2021 (till Nov, 29). Then, we generated a list of dates from January 1, 2023 till December 31, 2023. **This model recognized the current economic slow down** and made the forecast with lower total purchase amounts.
+We created a forecast for purchase of Cisco Systems products by the organizations using Texas Department of Information Resources. We used XGBoost algorithm to create prediction model, having trained it on the data from 2014 until the end of 2021, and validated it on the available data for 2021 (till Nov, 29). Then, we generated a list of dates from January 1, 2023 till December 31, 2023. 
+**This model recognized the current economic slow down** and made the forecast with lower total purchase amounts than a baseline type model which is expressed as predicting purchases using the mean values from the test period.
 
 
 # Conclusions: 
@@ -221,8 +222,8 @@ The goals of this project were:
 - Explore the historical data of the DIR contracts with Cisco. 
 - Create a model for the sales forecast of Cisco with public agencies.
 
-*Result:*
-We made a data exploration and created the regression model that can forecast the sales based on the date features only.
+**Result:**
+We explored 8 years of Texas DIR purchases of Cisco Products, finding patterns which could be articulable. Then, we created a purchase forecasting model which can predict purchases based on patterns found within date features only. Finally, we reported our findings via a canva presentation and utilzing tableau to show findings in a dashboard. 
 
 ## **Recommendations and next steps:**
 - split data on 5 different sets based on the customer type and mae predictions for every set.
